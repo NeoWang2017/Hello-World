@@ -135,10 +135,192 @@ A family OKR (Objectives & Key Results) tracking system with:
 - SwiftUI (iOS 17+, macOS 14+)
 - SwiftData + CloudKit (automatic iCloud sync)
 
+---
+
+## UX / UI Design
+
+### Design Language
+Follow Apple's official Human Interface Guidelines. Reference apps: **Fitness, Reminders, Stocks, Health**.
+
+- **SF Symbols** for all icons
+- **System materials** — translucency, vibrancy (`.ultraThinMaterial`, `.regularMaterial`)
+- **System colors** — accent color + semantic colors (`.primary`, `.secondary`, `.tertiary`)
+- **Standard controls** — `List`, `Form`, `NavigationStack`, `NavigationSplitView`
+- **Typography** — system fonts with Dynamic Type (`.title`, `.headline`, `.subheadline`, `.caption`)
+- **Automatic dark mode** support
+- **Standard spacing and padding** — no custom chrome
+
+### Avatars
+Use **initials in colored circles** (like iMessage contacts), NOT emoji. More Apple-native.
+- Each family member gets a system color (blue, green, purple, orange, pink, teal)
+- Consistent across all screens
+
+### Progress Visualization
+- **Rings** (Apple Fitness style) for overall and per-member progress
+- **Linear progress bars** for individual Key Results
+- **Status colors** (system semantic):
+  - Green (`.green`) — on track (≥70%)
+  - Blue (`.blue`) — in progress (30-70%)
+  - Orange (`.orange`) — at risk (<30%)
+  - Red (`.red`) — behind / blocked
+  - Gray (`.gray`) — not started
+
 ### Navigation
 
-**macOS:** NavigationSplitView with sidebar
-**iOS/iPad:** TabView
+**iPhone — TabView (4 tabs):**
+| Tab       | SF Symbol                      |
+|-----------|--------------------------------|
+| Dashboard | `house.fill`                   |
+| Objectives| `target`                       |
+| Activity  | `clock.arrow.circlepath`       |
+| Settings  | `gearshape.fill`               |
+
+**Mac / iPad — NavigationSplitView sidebar:**
+- Dashboard
+- Objectives
+- Family Members
+- Activity
+- Settings
+
+### First Launch / Onboarding
+Three simple screens:
+1. **Welcome** — "Track your family's yearly OKRs together"
+2. **Add family members** — initials + color picker + optional Lark User ID
+3. **Create first objective** — guided flow
+
+No sample data shipped. Guide users to create their real OKRs.
+
+### Dashboard Layout
+
+Inspired by Apple Fitness summary screen:
+
+```
+┌─────────────────────────────┐
+│  Family OKR 2026            │
+│                             │
+│  ╭───────────────────────╮  │
+│  │       ⭕ 47%           │  │  ← Large ring, overall progress
+│  │   Overall Progress     │  │
+│  │   ▓▓▓▓▓▓▓▓░░░░         │  │  ← Year time progress bar
+│  │   196 days remaining   │  │
+│  ╰───────────────────────╯  │
+│                             │
+│  Objectives       See All › │
+│  ◐ Healthier Lifestyle  52% │
+│  ◔ Financial Freedom    63% │
+│  ◑ Kids Grow Skills     38% │
+│                             │
+│  Recent Activity  See All › │
+│  [D] Dad ran 5km       Lark │
+│  [E] Emma read 1 book   App │
+│  [M] Mom cooked home    Lark│
+│                             │
+│  Family                     │
+│  [M]⚪ [D]⚪ [E]⚪ [J]⚪      │  ← Each with mini ring
+└─────────────────────────────┘
+```
+
+### Key Result Update Flow
+Must be fast — **3 seconds end-to-end**:
+
+1. Tap a Key Result row in Objective Detail
+2. Bottom sheet slides up (iOS) / popover (Mac)
+3. Shows:
+   - KR title + current progress bar
+   - **Stepper** or **Slider** (large, thumb-friendly)
+   - Optional note text field
+   - Save button
+4. Save → sheet dismisses → progress bar animates to new value
+
+### Activity Feed
+Timeline style, similar to Messages or Activity in Fitness:
+
+```
+Today
+  [D] Dad — Running distance +5km (89/200)    ◆ Lark
+  [E] Emma — Books read +1 (12/20)            ◆ App
+  
+Yesterday
+  [M] Mom — Home cooking +1 (146/300)         ◆ Lark
+```
+
+- Source indicator: small subtle icon (Lark logo mini, or `iphone` SF Symbol)
+- Tap row → jumps to the Key Result detail
+- Pull to refresh
+
+### Objectives List
+- Grouped header: **Year 2026**
+- Each row:
+  - Small progress ring (leading)
+  - Title (primary), description (secondary, 1 line)
+  - Owner avatar chip (trailing top)
+  - Status + priority badges (trailing bottom)
+- Swipe actions: Edit, Delete
+- **Add button** (top trailing) — `plus.circle` SF Symbol
+
+### Objective Detail
+- Large progress ring (hero)
+- Owner + priority + status pills
+- Description (if any)
+- **Key Results** section:
+  - Each KR as a card with title, progress bar, current/target, assignee, "Update" button
+- Recent updates to this objective (last 5)
+
+### Family Members
+- Grid on iPad/Mac (2-3 columns), list on iPhone
+- Member card:
+  - Large initial-circle avatar
+  - Name + role
+  - Personal progress ring
+  - Objective count
+- Tap → Member Detail with their assigned OKRs and activity
+
+### Settings
+Standard `Form` with grouped sections:
+- **Year** — year picker (current, ±1)
+- **Family** — manage members
+- **Integrations** — Lark connection status, Lark User ID per member
+- **About** — version, credits
+- **Data** — reset (with confirmation)
+
+### iOS Widgets
+Recommend **small + medium** widgets for home screen:
+
+**Small widget:**
+```
+┌─────────────┐
+│  ⭕ 47%      │
+│  2026 OKR   │
+│  196d left  │
+└─────────────┘
+```
+
+**Medium widget:**
+```
+┌─────────────────────────┐
+│  ⭕ 47%   Family OKR     │
+│         196 days left   │
+│  ───────────────────    │
+│  ◐ Healthier     52%    │
+│  ◔ Financial     63%    │
+│  ◑ Kids          38%    │
+└─────────────────────────┘
+```
+
+### Not In Scope (v1)
+- **Apple Watch app** — Lark bot covers quick updates, widget covers glanceable view
+- **Push notifications from the app** — Lark group chat is the social/notification layer
+- **Sharing/export** — deferred to v2
+
+### Scale Guidelines
+For a family of 3-5 members:
+- **3-5 objectives per year** (keep focused)
+- **2-4 key results per objective**
+- **Total: ~10-15 key results**
+
+Too many OKRs dilutes focus — the app gently discourages going beyond this.
+
+---
 
 ### Screens
 
